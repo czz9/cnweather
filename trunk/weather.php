@@ -4,15 +4,7 @@
 by xw
 */
 
-    $file="http://php.weather.sina.com.cn/xml_new.php?password=DJOYnieT8234jlsK&day=0";
-    $data=file_get_contents($file);
-    $xml_parser = xml_parser_create();
-    xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING, 0);
-    xml_parser_set_option($xml_parser, XML_OPTION_SKIP_WHITE, 1);
-    xml_parse_into_struct($xml_parser, $data, $vals);
-    xml_parser_free($xml_parser);
- //   print_r($vals);
-
+//  未来三天时间
     $today = date("n\月j\日");
     $tomorrow = date("n\月j\日",time() + 24*60*60);
     $nextnextday = date("n\月j\日",time() + 2*24*60*60);    
@@ -28,7 +20,7 @@ by xw
 	    "┃44444444┃ 333333333┃ 3333333┃ 333333333┃ 3333333┃ 333333333┃ 3333333┃\n";
     //echo $head;
 
-    $num = -1;
+    $num = 3;
     $row = "";
     $con = "";
 
@@ -42,11 +34,10 @@ by xw
         $data=file_get_contents($file);
         $xml_parser = xml_parser_create();
         xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING, 0);
-	//$data = iconv("GB2312","ISO-8859-1",$data);
         xml_parser_set_option($xml_parser, XML_OPTION_SKIP_WHITE, 1);
         xml_parse_into_struct($xml_parser, $data, $vals);
 	xml_parser_free($xml_parser);
-	$num = -1;
+	$num = 3;
 	for($i=0;$i<=count($vals)-1;$i++){
 	    switch($vals[$i][tag]){
 		case "Weather":
@@ -55,25 +46,27 @@ by xw
 			$curCity = "";
 			$curStat = "";
 			$curTemp = "";
-			if($j == 0){
-			    $res[$num] = "┃        ┃          ┃        ┃          ┃        ┃          ┃        ┃\n";
-//			    $res[$num] = "123456789012345678901234567890123456789012345678901234567890123456789012345678\n";
-			}
 		    }else{
 			$start = $firstDay + $dayLen * $j;
-			//echo iconv("UTF-8","GBK" ,$curCity.$curStat.$curTemp);
 			$curCity = iconv("UTF-8","GB2312" ,$curCity);
-			//$curStat = iconv("UTF-8","GBK" ,$curStat);
-			//$curTemp1 = iconv("UTF-8","GBK" ,$curTemp1);
+			$temp = $num;
+			if($curCity == "北京"){;
+			    $num = 0;
+			}else if($curCity == "上海"){
+			    $num = 1;
+			}else if($curCity == "天津"){
+			    $num = 2;
+			}else if($curCity == "重庆"){
+			    $num = 3;
+			}
+			if($j == 0){
+			    $res[$num] = "┃        ┃          ┃        ┃          ┃        ┃          ┃        ┃\n";
+			//  $res[$num] = "123456789012345678901234567890123456789012345678901234567890123456789012345678\n";
+			}
 			$res[$num] = substr_replace($res[$num],$curCity,$cityStart,strlen($curCity));
 			$res[$num] = substr_replace($res[$num],$curStat,$start,strlen($curStat));
 			$res[$num] = substr_replace($res[$num],$curTemp,$start + $weatherLen,strlen($curTemp));
-		        if($j == 2){
-			    if($i==(count($vals)-3))
-				$con = $con.$res[$num]."┗━━━━┻━━━━━┻━━━━┻━━━━━┻━━━━┻━━━━━┻━━━━┛\n";
-			    else
-				$con = $con.$res[$num]."┣━━━━╋━━━━━╋━━━━╋━━━━━╋━━━━╋━━━━━╋━━━━┫\n";
-			}
+			if($num != $temp) $num = $temp - 1;
 		    }
 		    break;
 		
@@ -99,6 +92,12 @@ by xw
 		    break;
 	    }
 	}
+    }
+    for($i = 0; $i <= count($res) - 1; $i++){
+	    if($i == (count($res) - 1))
+		$con = $con.$res[$i]."┗━━━━┻━━━━━┻━━━━┻━━━━━┻━━━━┻━━━━━┻━━━━┛\n";
+	    else
+		$con = $con.$res[$i]."┣━━━━╋━━━━━╋━━━━╋━━━━━╋━━━━╋━━━━━╋━━━━┫\n";
     }
     echo $head.$con;
 ?>
